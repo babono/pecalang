@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { desc, eq, sql } from "drizzle-orm";
 import { currentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
@@ -10,7 +11,11 @@ import { DispatchButton } from "./dispatch-button";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const user = (await currentUser())!;
+  // Don't trust the layout guard: a present-but-stale session cookie reaches
+  // here with no matching user, so redirect rather than dereference null.
+  const user = await currentUser();
+  if (!user) redirect("/login");
+
   const db = await getDb();
 
   const rows = await db

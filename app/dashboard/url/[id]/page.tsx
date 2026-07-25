@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { and, count, desc, eq } from "drizzle-orm";
 import { currentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
@@ -23,7 +23,9 @@ export default async function TargetDetailPage({
   const { page: pageParam } = await searchParams;
   const page = Math.max(1, Number(pageParam ?? "1") || 1);
 
-  const user = (await currentUser())!;
+  const user = await currentUser();
+  if (!user) redirect("/login");
+
   const db = await getDb();
 
   const [target] = await db
