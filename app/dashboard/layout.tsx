@@ -12,11 +12,11 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-full flex-col">
-      <header className="border-b border-rule bg-paper-raised">
+      <header className="border-b border-teal-line bg-teal-deep">
         <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-x-8 gap-y-3 px-6 py-5">
           <Link
             href="/dashboard"
-            className="font-[family-name:var(--font-display)] text-xl tracking-tight text-ink"
+            className="text-xl font-semibold tracking-tight text-cream"
           >
             Pecalang
           </Link>
@@ -24,26 +24,26 @@ export default async function DashboardLayout({
           <nav className="flex items-center gap-6">
             <Link
               href="/dashboard"
-              className="text-sm text-ink-muted transition-colors hover:text-ink"
+              className="text-sm text-cream-muted transition-colors hover:text-cream"
             >
               Watchlist
             </Link>
             <Link
               href="/dashboard/add"
-              className="text-sm text-ink-muted transition-colors hover:text-ink"
+              className="text-sm text-cream-muted transition-colors hover:text-cream"
             >
               Add a URL
             </Link>
           </nav>
 
           <div className="ml-auto flex items-center gap-4">
-            <span className="hidden text-xs text-ink-faint sm:inline">
+            <span className="hidden text-xs text-cream-muted sm:inline">
               {user.email}
             </span>
             <form action="/api/auth/logout" method="post">
               <button
                 type="submit"
-                className="text-xs text-ink-muted underline decoration-rule-strong underline-offset-4 transition-colors hover:text-accent"
+                className="text-xs text-cream-muted underline decoration-teal-line underline-offset-4 transition-colors hover:text-cream"
               >
                 Sign out
               </button>
@@ -56,8 +56,8 @@ export default async function DashboardLayout({
         {children}
       </main>
 
-      <footer className="border-t border-rule px-6 py-6">
-        <p className="mx-auto max-w-5xl text-xs text-ink-faint">
+      <footer className="border-t border-teal-line bg-teal-deep px-6 py-6">
+        <p className="mx-auto max-w-5xl text-xs text-cream-muted">
           Checks run when the dispatcher ticks —{" "}
           <code className="font-[family-name:var(--font-mono)]">
             POST /api/cron/dispatch

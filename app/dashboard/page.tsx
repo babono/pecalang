@@ -39,8 +39,8 @@ export default async function DashboardPage() {
     <div className="space-y-8">
       <header className="flex flex-wrap items-end justify-between gap-4 border-b border-rule pb-6">
         <div>
-          <p className="eyebrow">The watchlist</p>
-          <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl tracking-tight">
+          <p className="eyebrow text-cream-muted">The watchlist</p>
+          <h1 className="mt-2 text-3xl tracking-tight text-cream">
             {rows.length === 0
               ? "Nothing under watch yet"
               : `${watching} page${watching === 1 ? "" : "s"} under watch`}
@@ -50,7 +50,7 @@ export default async function DashboardPage() {
           <DispatchButton />
           <Link
             href="/dashboard/add"
-            className="bg-ink px-4 py-2 text-sm text-paper-raised transition-opacity hover:opacity-90"
+            className="bg-cta px-4 py-2 text-sm text-white transition-colors hover:bg-cta-strong"
           >
             Add a URL
           </Link>
@@ -59,9 +59,7 @@ export default async function DashboardPage() {
 
       {rows.length === 0 ? (
         <div className="border border-dashed border-rule-strong bg-paper-raised px-8 py-16 text-center">
-          <h2 className="font-[family-name:var(--font-display)] text-xl">
-            Put something under watch
-          </h2>
+          <h2 className="text-xl text-ink">Put something under watch</h2>
           <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-ink-muted">
             Paste any public URL and pick how often it should be checked. The
             first check stores a baseline; from then on you get a written
@@ -69,13 +67,13 @@ export default async function DashboardPage() {
           </p>
           <Link
             href="/dashboard/add"
-            className="mt-6 inline-block bg-ink px-5 py-2.5 text-sm text-paper-raised transition-opacity hover:opacity-90"
+            className="mt-6 inline-block bg-cta px-5 py-2.5 text-sm text-white transition-colors hover:bg-cta-strong"
           >
             Add your first URL
           </Link>
         </div>
       ) : (
-        <div className="overflow-x-auto border border-rule bg-paper-raised">
+        <div className="overflow-x-auto border border-rule bg-paper-raised shadow-[0_18px_40px_-30px_rgba(0,0,0,0.5)]">
           <table className="w-full min-w-[46rem] border-collapse text-left">
             <thead>
               <tr className="border-b border-rule">

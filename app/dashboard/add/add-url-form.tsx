@@ -51,7 +51,7 @@ export function AddUrlForm({ frequencies }: { frequencies: Frequency[] }) {
   return (
     <form
       onSubmit={onSubmit}
-      className="space-y-8 border border-rule bg-paper-raised p-8"
+      className="space-y-8 border border-rule bg-paper-raised p-8 shadow-[0_18px_40px_-30px_rgba(0,0,0,0.5)]"
     >
       <div>
         <label htmlFor="url" className="eyebrow block">
@@ -90,8 +90,8 @@ export function AddUrlForm({ frequencies }: { frequencies: Frequency[] }) {
             return (
               <label
                 key={option.value}
-                className={`cursor-pointer bg-paper-raised px-4 py-4 transition-colors ${
-                  active ? "bg-accent-soft" : "hover:bg-paper"
+                className={`cursor-pointer px-4 py-4 transition-colors ${
+                  active ? "bg-stable-soft" : "bg-paper-raised hover:bg-paper"
                 }`}
               >
                 <input
@@ -103,7 +103,7 @@ export function AddUrlForm({ frequencies }: { frequencies: Frequency[] }) {
                   className="sr-only"
                 />
                 <span className="flex items-baseline justify-between gap-2">
-                  <span className="font-[family-name:var(--font-display)] text-base">
+                  <span className="text-base font-medium text-ink">
                     {option.label}
                   </span>
                   <span className="font-[family-name:var(--font-mono)] text-[11px] text-ink-faint">
@@ -157,7 +157,7 @@ export function AddUrlForm({ frequencies }: { frequencies: Frequency[] }) {
         <button
           type="submit"
           disabled={pending}
-          className="bg-ink px-5 py-2.5 text-sm text-paper-raised transition-opacity hover:opacity-90 disabled:opacity-50"
+          className="bg-cta px-5 py-2.5 text-sm text-white transition-colors hover:bg-cta-strong disabled:opacity-50"
         >
           {pending ? "Capturing baseline…" : "Start watching"}
         </button>

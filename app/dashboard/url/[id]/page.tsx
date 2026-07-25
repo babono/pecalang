@@ -51,24 +51,24 @@ export default async function TargetDetailPage({
 
   return (
     <div className="space-y-10">
-      <header className="border-b border-rule pb-6">
+      <header className="border-b border-teal-line pb-6">
         <Link
           href="/dashboard"
-          className="eyebrow transition-colors hover:text-ink"
+          className="eyebrow text-cream-muted transition-colors hover:text-cream"
         >
           ← Watchlist
         </Link>
 
         <div className="mt-4 flex flex-wrap items-start justify-between gap-6">
           <div className="min-w-0">
-            <h1 className="font-[family-name:var(--font-display)] text-3xl tracking-tight">
+            <h1 className="text-3xl tracking-tight text-cream">
               {target.label ?? new URL(target.url).hostname}
             </h1>
             <a
               href={target.url}
               target="_blank"
               rel="noreferrer noopener"
-              className="mt-2 inline-block break-all font-[family-name:var(--font-mono)] text-xs text-ink-muted underline decoration-rule-strong underline-offset-4 hover:decoration-accent"
+              className="mt-2 inline-block break-all font-[family-name:var(--font-mono)] text-xs text-cream-muted underline decoration-teal-line underline-offset-4 hover:text-cream"
             >
               {target.url}
             </a>
@@ -78,38 +78,38 @@ export default async function TargetDetailPage({
 
         <dl className="mt-8 grid grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-4">
           <div>
-            <dt className="eyebrow">Status</dt>
+            <dt className="eyebrow text-cream-muted">Status</dt>
             <dd className="mt-1.5">
               <StatusBadge status={target.active ? target.lastStatus : null} />
             </dd>
           </div>
           <div>
-            <dt className="eyebrow">Frequency</dt>
-            <dd className="mt-1.5 text-sm text-ink">
+            <dt className="eyebrow text-cream-muted">Frequency</dt>
+            <dd className="mt-1.5 text-sm text-cream">
               {describeCron(target.cronSchedule)}
             </dd>
           </div>
           <div>
-            <dt className="eyebrow">Last check</dt>
-            <dd className="mt-1.5 text-sm text-ink">
+            <dt className="eyebrow text-cream-muted">Last check</dt>
+            <dd className="mt-1.5 text-sm text-cream">
               {formatRelative(target.lastCheckedAt)}
             </dd>
           </div>
           <div>
-            <dt className="eyebrow">Next run</dt>
-            <dd className="mt-1.5 text-sm text-ink">
+            <dt className="eyebrow text-cream-muted">Next run</dt>
+            <dd className="mt-1.5 text-sm text-cream">
               {target.active ? formatRelative(target.nextRunAt) : "Paused"}
             </dd>
           </div>
           <div className="col-span-2">
-            <dt className="eyebrow">Watching</dt>
-            <dd className="mt-1.5 font-[family-name:var(--font-mono)] text-sm text-ink">
+            <dt className="eyebrow text-cream-muted">Watching</dt>
+            <dd className="mt-1.5 font-[family-name:var(--font-mono)] text-sm text-cream">
               {target.selector ?? "whole page body"}
             </dd>
           </div>
           <div className="col-span-2">
-            <dt className="eyebrow">Content hash</dt>
-            <dd className="mt-1.5 truncate font-[family-name:var(--font-mono)] text-sm text-ink-muted">
+            <dt className="eyebrow text-cream-muted">Content hash</dt>
+            <dd className="mt-1.5 truncate font-[family-name:var(--font-mono)] text-sm text-cream-muted">
               {target.lastScrapedHash?.slice(0, 32) ?? "—"}
             </dd>
           </div>
@@ -119,13 +119,13 @@ export default async function TargetDetailPage({
       <section>
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="eyebrow">Crawl log</p>
-            <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl tracking-tight">
+            <p className="eyebrow text-cream-muted">Crawl log</p>
+            <h2 className="mt-2 text-2xl tracking-tight text-cream">
               {total} check{total === 1 ? "" : "s"} recorded
             </h2>
           </div>
           {pageCount > 1 ? (
-            <p className="text-xs text-ink-faint">
+            <p className="text-xs text-cream-muted">
               Page {page} of {pageCount}
             </p>
           ) : null}
@@ -136,7 +136,7 @@ export default async function TargetDetailPage({
             No checks yet. Run one from the controls above.
           </p>
         ) : (
-          <ol className="mt-6 space-y-px border border-rule bg-rule">
+          <ol className="mt-6 space-y-px border border-rule bg-rule shadow-[0_18px_40px_-30px_rgba(0,0,0,0.5)]">
             {logs.map((log) => (
               <li key={log.id} className="bg-paper-raised px-6 py-5">
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -202,7 +202,7 @@ export default async function TargetDetailPage({
             {page > 1 ? (
               <Link
                 href={`/dashboard/url/${target.id}?page=${page - 1}`}
-                className="text-sm text-ink-muted underline decoration-rule-strong underline-offset-4 hover:text-ink"
+                className="text-sm text-cream-muted underline decoration-teal-line underline-offset-4 hover:text-cream"
               >
                 ← Newer
               </Link>
@@ -212,7 +212,7 @@ export default async function TargetDetailPage({
             {page < pageCount ? (
               <Link
                 href={`/dashboard/url/${target.id}?page=${page + 1}`}
-                className="text-sm text-ink-muted underline decoration-rule-strong underline-offset-4 hover:text-ink"
+                className="text-sm text-cream-muted underline decoration-teal-line underline-offset-4 hover:text-cream"
               >
                 Older →
               </Link>

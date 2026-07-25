@@ -59,7 +59,7 @@ export function TargetControls({
         type="button"
         onClick={checkNow}
         disabled={busy !== null}
-        className="bg-ink px-4 py-2 text-sm text-paper-raised transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="bg-cta px-4 py-2 text-sm text-white transition-colors hover:bg-cta-strong disabled:opacity-50"
       >
         {busy === "check" ? "Checking…" : "Check now"}
       </button>
@@ -67,7 +67,7 @@ export function TargetControls({
         type="button"
         onClick={toggleActive}
         disabled={busy !== null}
-        className="border border-rule-strong px-4 py-2 text-sm text-ink-muted transition-colors hover:border-ink hover:text-ink disabled:opacity-50"
+        className="border border-cream/30 px-4 py-2 text-sm text-cream transition-colors hover:border-cream hover:bg-teal-line/40 disabled:opacity-50"
       >
         {active ? "Pause" : "Resume"}
       </button>
@@ -75,7 +75,7 @@ export function TargetControls({
         type="button"
         onClick={remove}
         disabled={busy !== null}
-        className="text-sm text-ink-faint underline decoration-rule-strong underline-offset-4 transition-colors hover:text-accent disabled:opacity-50"
+        className="text-sm text-cream-muted underline decoration-teal-line underline-offset-4 transition-colors hover:text-cream disabled:opacity-50"
       >
         Delete
       </button>

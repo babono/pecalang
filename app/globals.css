@@ -1,53 +1,78 @@
 @import "tailwindcss";
 
 /*
- * Modern heritage: warm paper, ink-black serif display, hairline rules,
- * letterspaced small caps for labels. Committed to a single light palette —
- * the look depends on the paper tone, so there is no dark variant.
+ * 8 Degree palette: deep teal ground, warm cream content cards, Montserrat
+ * throughout, jade-green calls to action. Teal is the brand + page colour;
+ * cream cards are the reading surface; green is reserved for primary buttons
+ * so they read on both surfaces.
  */
 @theme {
-  --color-paper: #f6f2e9;
-  --color-paper-raised: #fffdf8;
-  --color-ink: #17150f;
-  --color-ink-muted: #5d574a;
-  --color-ink-faint: #8b8375;
-  --color-rule: #ddd5c4;
-  --color-rule-strong: #c3b9a3;
+  /* Teal surfaces — page, header, footer */
+  --color-teal: #01514d;
+  --color-teal-deep: #013f3b;
+  --color-teal-line: #16645f;
 
-  --color-accent: #7c2d2d;
-  --color-accent-soft: #f2e3dd;
-  --color-stable: #4a5c3d;
-  --color-stable-soft: #e6e9dc;
-  --color-alarm: #8a4b12;
-  --color-alarm-soft: #f3e6d6;
+  /* Text that sits directly on teal */
+  --color-cream: #eef1e7;
+  --color-cream-muted: #a7bcb6;
 
-  --font-display: Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  /* Cream card surfaces + the dark text on them */
+  --color-paper: #ece8dc;
+  --color-paper-raised: #f5f2ea;
+  --color-ink: #10403b;
+  --color-ink-muted: #566661;
+  --color-ink-faint: #7d938c;
+  --color-rule: #dcd6c7;
+  --color-rule-strong: #c2bba8;
+
+  /* Primary action */
+  --color-cta: #2f9e73;
+  --color-cta-strong: #26875f;
+
+  /* Danger + status tones */
+  --color-accent: #a24b32;
+  --color-accent-soft: #f0e1d9;
+  --color-stable: #2f7d5f;
+  --color-stable-soft: #e3ece3;
+  --color-alarm: #a9722a;
+  --color-alarm-soft: #f1e7d3;
+
+  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
 html {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 body {
-  background-color: var(--color-paper);
-  color: var(--color-ink);
+  background-color: var(--color-teal);
+  color: var(--color-cream);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
-/* Small letterspaced label — used above every section and table column. */
+/* Elegant, light display headings à la 8 Degree. */
+h1,
+h2,
+h3 {
+  font-weight: 300;
+  letter-spacing: -0.01em;
+}
+
+/* Small letterspaced label. Universal sage reads on cream and on teal. */
 @utility eyebrow {
   font-size: 0.6875rem;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-ink-faint);
 }
 
 ::selection {
-  background-color: var(--color-accent-soft);
+  background-color: #cfe6db;
+  color: var(--color-ink);
 }
 
 input,
@@ -62,6 +87,6 @@ select:focus-visible,
 textarea:focus-visible,
 button:focus-visible,
 a:focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-cta);
   outline-offset: 2px;
 }

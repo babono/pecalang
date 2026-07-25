@@ -33,12 +33,14 @@ export function DispatchButton() {
 
   return (
     <div className="flex items-center gap-2">
-      {result ? <span className="text-xs text-ink-faint">{result}</span> : null}
+      {result ? (
+        <span className="text-xs text-cream-muted">{result}</span>
+      ) : null}
       <button
         type="button"
         onClick={run}
         disabled={pending}
-        className="border border-rule-strong px-4 py-2 text-sm text-ink-muted transition-colors hover:border-ink hover:text-ink disabled:opacity-50"
+        className="border border-cream/30 px-4 py-2 text-sm text-cream transition-colors hover:border-cream hover:bg-teal-line/40 disabled:opacity-50"
       >
         {pending ? "Running…" : "Run dispatcher"}
       </button>
