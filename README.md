@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pecalang — page watch
 
-## Getting Started
+Watch any URL on a schedule. When the visible text of the page changes, an LLM
+writes a plain-language account of *what* changed. Built on Next.js 16 (App
+Router), TypeScript, Tailwind v4, and Drizzle.
 
-First, run the development server:
+## Run locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+With no configuration it uses an embedded PGlite database and heuristic change
+summaries. Sign in with the seeded demo account:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **demo@pecalang.dev** / **watchtower** (pre-filled on the login page)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Copy `.env.example` to `.env.local` to add a real database or an LLM key.
 
-## Learn More
+## LLM provider
 
-To learn more about Next.js, take a look at the following resources:
+The summariser picks a provider by which key is present, in order:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. `DEEPSEEK_API_KEY` — DeepSeek (OpenAI-compatible), model `deepseek-chat`
+2. `ANTHROPIC_API_KEY` — Claude, model `claude-opus-4-8`
+3. neither — a deterministic heuristic summary
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deploying to Vercel
 
-## Deploy on Vercel
+1. **Database.** Provision free Postgres (Neon recommended, or Supabase) and set
+   `DATABASE_URL` to its **pooled** connection string. PGlite is dev-only and
+   won't persist on Vercel.
+2. **Env vars** in the Vercel project:
+   - `DATABASE_URL` (required)
+   - `SESSION_SECRET` (required — the app throws without it in production)
+   - `CRON_SECRET` (required — the cron/worker routes are locked without it;
+     Vercel Cron sends it automatically)
+   - one of `DEEPSEEK_API_KEY` / `ANTHROPIC_API_KEY` (optional)
+3. **Deploy.** `vercel.json` registers an hourly cron on `/api/cron/dispatch`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Scheduling caveat
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The per-URL frequencies (15 min / hourly / daily / weekly) are only as fine as
+how often the dispatcher actually runs:
+
+- **Vercel Hobby** caps cron at roughly once per day — so a "15-minute" URL is
+  effectively checked daily.
+- For real sub-hour frequency on the free tier, trigger the dispatcher from an
+  external scheduler (e.g. cron-job.org or a GitHub Actions scheduled workflow)
+  every 15 minutes:
+
+  ```
+  POST https://<your-app>/api/cron/dispatch
+  Authorization: Bearer <CRON_SECRET>
+  ```
+
+- On Vercel Pro, set the `vercel.json` schedule to `*/15 * * * *`.
+
+The dispatcher processes up to 8 due targets per tick (see `MAX_PER_TICK`) to
+stay within the function time limit.

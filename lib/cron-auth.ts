@@ -5,7 +5,11 @@
  */
 export function authorizeCronRequest(request: Request): boolean {
   const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
+  if (!secret) {
+    // Open for convenience in dev; in production an unset secret means locked,
+    // never wide open — the cron routes trigger real fetches + LLM spend.
+    return process.env.NODE_ENV !== "production";
+  }
 
   const header =
     request.headers.get("x-cron-secret") ??

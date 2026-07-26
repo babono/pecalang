@@ -6,7 +6,15 @@ import { users, type User } from "./db/schema";
 
 export const SESSION_COOKIE = "pecalang_session";
 
-const secret = () => process.env.SESSION_SECRET ?? "pecalang-dev-secret";
+const secret = () => {
+  const value = process.env.SESSION_SECRET;
+  if (value) return value;
+  // A predictable fallback secret in production means forgeable sessions.
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("SESSION_SECRET must be set in production.");
+  }
+  return "pecalang-dev-secret";
+};
 
 export function signSession(userId: string) {
   const mac = createHmac("sha256", secret()).update(userId).digest("hex");

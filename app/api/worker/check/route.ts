@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { runCheckById } from "@/lib/monitor";
 import { authorizeCronRequest } from "@/lib/cron-auth";
 
+// Fetch + LLM per call — allow headroom past the default serverless limit.
+export const maxDuration = 60;
+
 /**
  * Worker: fetch the page, extract its text, hash it, compare against the
  * stored hash, and write a crawl log (with an LLM summary when it differs).

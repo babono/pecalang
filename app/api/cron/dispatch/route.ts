@@ -2,14 +2,22 @@ import { NextResponse } from "next/server";
 import { and, eq, isNull, lte, or } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { targetUrls } from "@/lib/db/schema";
-import { authorizeCronRequest, cronHeaders } from "@/lib/cron-auth";
+import { authorizeCronRequest } from "@/lib/cron-auth";
+import { runCheckById } from "@/lib/monitor";
 
-const MAX_PER_TICK = 25;
+// Each check fetches a page and may call an LLM, so give the invocation room.
+// (Requires a plan whose function limit allows it; Hobby caps lower.)
+export const maxDuration = 60;
+
+// Kept small so one tick stays within the function time limit. Raise it (and
+// maxDuration) on a plan that allows longer functions, or run the per-URL
+// worker route externally for higher volume.
+const MAX_PER_TICK = 8;
 
 /**
- * Dispatcher: find every active target whose cron schedule says it is due, and
- * hand each one to the worker route. Point a real cron (Vercel Cron, systemd
- * timer, GitHub Action) at this endpoint once a minute.
+ * Dispatcher: find every active target whose cron schedule says it is due and
+ * run each check. Point a scheduler (Vercel Cron, or any external cron hitting
+ * this URL) at this endpoint. Checks run sequentially for predictable timing.
  */
 async function dispatch(request: Request) {
   if (!authorizeCronRequest(request)) {
@@ -30,34 +38,24 @@ async function dispatch(request: Request) {
     )
     .limit(MAX_PER_TICK);
 
-  const workerUrl = new URL("/api/worker/check", request.url);
-
-  const results = await Promise.all(
-    due.map(async (target) => {
-      try {
-        const response = await fetch(workerUrl, {
-          method: "POST",
-          headers: cronHeaders(),
-          body: JSON.stringify({ targetUrlId: target.id }),
-        });
-        const payload = await response.json().catch(() => null);
-        return {
-          targetUrlId: target.id,
-          url: target.url,
-          dispatched: response.ok,
-          status: payload?.data?.status ?? null,
-        };
-      } catch (error) {
-        return {
-          targetUrlId: target.id,
-          url: target.url,
-          dispatched: false,
-          status: null,
-          error: error instanceof Error ? error.message : "dispatch failed",
-        };
-      }
-    }),
-  );
+  const results = [];
+  for (const target of due) {
+    try {
+      const outcome = await runCheckById(target.id);
+      results.push({
+        targetUrlId: target.id,
+        url: target.url,
+        status: outcome?.status ?? null,
+      });
+    } catch (error) {
+      results.push({
+        targetUrlId: target.id,
+        url: target.url,
+        status: null,
+        error: error instanceof Error ? error.message : "check failed",
+      });
+    }
+  }
 
   return NextResponse.json({
     checkedAt: now.toISOString(),
@@ -68,5 +66,6 @@ async function dispatch(request: Request) {
 }
 
 export const POST = dispatch;
-// GET is allowed so a browser or a plain `curl` can trigger a tick while developing.
+// GET is allowed so a browser or plain `curl` (and Vercel Cron, which sends GET)
+// can trigger a tick.
 export const GET = dispatch;

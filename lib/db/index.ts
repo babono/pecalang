@@ -20,8 +20,22 @@ async function connect(): Promise<Database> {
       import("drizzle-orm/postgres-js"),
       import("postgres"),
     ]);
-    const client = postgres.default(url, { max: 4 });
+    const client = postgres.default(url, {
+      // One connection per serverless instance; use your provider's *pooled*
+      // connection string (Neon pooler / Supabase 6543) so instances share a
+      // pool. `prepare: false` is required by transaction-mode poolers.
+      max: 1,
+      prepare: false,
+    });
     return drizzle(client, { schema });
+  }
+
+  // PGlite writes to a local directory, which does not persist on serverless
+  // platforms — every cold start would begin with an empty database.
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "DATABASE_URL is required in production. The embedded PGlite store is dev-only and does not persist.",
+    );
   }
 
   const [{ drizzle }, { PGlite }] = await Promise.all([

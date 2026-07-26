@@ -5,6 +5,9 @@ import { targetUrls } from "@/lib/db/schema";
 import { requireUser, UnauthorizedError } from "@/lib/auth";
 import { runCheck } from "@/lib/monitor";
 
+// Fetch + LLM on a user-triggered "check now".
+export const maxDuration = 60;
+
 type Context = { params: Promise<{ id: string }> };
 
 /** "Check now" — same code path the scheduled worker uses, run on demand. */
