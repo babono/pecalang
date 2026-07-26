@@ -37,43 +37,19 @@ The summariser picks a provider by which key is present, in order:
    - `CRON_SECRET` (required — the cron/worker routes are locked without it;
      Vercel Cron sends it automatically)
    - one of `DEEPSEEK_API_KEY` / `ANTHROPIC_API_KEY` (optional)
-3. **Deploy.** `vercel.json` registers an hourly cron on `/api/cron/dispatch`.
+3. **Deploy.** `vercel.json` registers a daily cron (`0 8 * * *`) on
+   `/api/cron/dispatch`, which is what the Vercel free tier supports.
 
-### Scheduling with trigger.dev (recommended)
+### Scheduling cadence
 
-**Vercel Hobby cron fires only ~once a day**, so the per-URL frequencies
-(15 min / hourly / daily / weekly) can't be honoured by Vercel cron alone. The
-project ships a [trigger.dev](https://trigger.dev) setup that runs the checks on
-trigger.dev's own infrastructure — no serverless time limit, per-target retries,
-and a real dashboard.
+Checks run when the cron ticks. On the current setup that's **once a day**, so
+the per-URL frequency options (15 min / hourly / weekly) act as a *floor* — a
+"daily" or slower URL runs on schedule, while faster ones are effectively capped
+at daily. Each daily tick processes up to 8 due targets (`MAX_PER_TICK`) to stay
+within the function time limit.
 
-Files: `trigger.config.ts` and `trigger/checks.ts`.
-- `dispatch-due-checks` — a scheduled task (every 15 min) that finds due targets
-  and fans each out to its own run.
-- `check-target` — runs one target's check (the same fetch → hash → diff → LLM →
-  log pipeline the app uses), with up to 3 retries.
+If you later want finer or higher-volume checking:
 
-Setup:
-
-1. `npx trigger.dev@latest login`
-2. Create a project in the dashboard; set `TRIGGER_PROJECT_REF` (or edit the
-   placeholder in `trigger.config.ts`).
-3. In the trigger.dev project's **environment variables**, set `DATABASE_URL`
-   (the same Postgres) and your LLM key (`DEEPSEEK_API_KEY` / `ANTHROPIC_API_KEY`).
-   The scheduling secrets (`SESSION_SECRET`, `CRON_SECRET`) are **not** needed
-   here — trigger.dev calls the pipeline directly, not the HTTP routes.
-4. `npx trigger.dev@latest dev` to test locally, then `npx trigger.dev@latest deploy`.
-
-With trigger.dev handling the schedule, `vercel.json` and the `/api/cron/dispatch`
-route are optional — keep the route for manual/`curl` triggering if you like.
-
-### Other free schedulers
-
-If you'd rather keep the logic in the Vercel app and just ping it on a timer:
-
-- **cron-job.org** (free, down to 1 min) → `POST /api/cron/dispatch` with header
+- **cron-job.org** (free) → `POST /api/cron/dispatch` every 15 min with header
   `Authorization: Bearer <CRON_SECRET>`.
-- **Vercel Pro** → set the `vercel.json` schedule to `*/15 * * * *`.
-
-The HTTP dispatcher processes up to 8 due targets per tick (`MAX_PER_TICK`) to
-stay within the function time limit; trigger.dev has no such cap.
+- **Vercel Pro** → change the `vercel.json` schedule to `*/15 * * * *`.
