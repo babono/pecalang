@@ -39,6 +39,22 @@ export function extractText(html: string, selector?: string | null): string {
   $("script, style, noscript, svg, iframe, template").remove();
 
   const root = selector ? $(selector) : $("body").length ? $("body") : $.root();
+
+  // Cheerio's .text() concatenates the whole subtree with no separators, which
+  // collapses the page into one giant line — a change anywhere then looks like
+  // the entire line was replaced, and the diff can't localise it. Insert line
+  // breaks at block boundaries and <br> so each block/paragraph is its own line.
+  root.find("br").replaceWith("\n");
+  root
+    .find(
+      "p, div, section, article, header, footer, main, nav, aside, ul, ol, li, tr, table, h1, h2, h3, h4, h5, h6, blockquote, pre, figure, figcaption, address, hr",
+    )
+    .each((_, el) => {
+      const node = $(el);
+      node.prepend("\n");
+      node.append("\n");
+    });
+
   const raw = root.text();
 
   return raw
@@ -77,7 +93,9 @@ export function buildDiff(
 
     const marker = part.added ? "+" : "-";
     for (const line of partLines) {
-      if (lines.length < maxLines) lines.push(`${marker} ${line.slice(0, 400)}`);
+      // Generous per-line cap so a change late in a long line isn't cut off
+      // before the model (or you) can see it.
+      if (lines.length < maxLines) lines.push(`${marker} ${line.slice(0, 2000)}`);
     }
   }
 
