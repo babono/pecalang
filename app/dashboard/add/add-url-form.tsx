@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Spinner } from "@/components/spinner";
 
 type Frequency = {
   value: string;
@@ -182,8 +183,9 @@ export function AddUrlForm({ frequencies }: { frequencies: Frequency[] }) {
         <button
           type="submit"
           disabled={pending}
-          className="bg-cta px-5 py-2.5 text-sm text-white transition-colors hover:bg-cta-strong disabled:opacity-50"
+          className="inline-flex items-center gap-2 bg-cta px-5 py-2.5 text-sm text-white transition-colors hover:bg-cta-strong disabled:opacity-60"
         >
+          {pending ? <Spinner /> : null}
           {pending ? "Capturing baseline…" : "Start watching"}
         </button>
         <p className="text-xs text-ink-faint">

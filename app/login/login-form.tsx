@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Spinner } from "@/components/spinner";
 
 export function LoginForm({
   defaultEmail,
@@ -15,11 +16,15 @@ export function LoginForm({
   const [email, setEmail] = useState(defaultEmail);
   const [password, setPassword] = useState(defaultPassword);
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [pending, startTransition] = useTransition();
+  // Covers both the login request and the redirect that follows it.
+  const busy = submitting || pending;
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
     setError(null);
+    setSubmitting(true);
 
     const response = await fetch("/api/auth/login", {
       method: "POST",
@@ -30,9 +35,11 @@ export function LoginForm({
     if (!response.ok) {
       const payload = await response.json().catch(() => null);
       setError(payload?.error ?? "Sign in failed.");
+      setSubmitting(false);
       return;
     }
 
+    // Leave `submitting` true — the redirect below unmounts this form.
     startTransition(() => {
       router.replace(params.get("next") ?? "/dashboard");
       router.refresh();
@@ -77,10 +84,11 @@ export function LoginForm({
 
       <button
         type="submit"
-        disabled={pending}
-        className="w-full bg-cta px-4 py-2.5 text-sm font-medium tracking-wide text-white transition-colors hover:bg-cta-strong disabled:opacity-50"
+        disabled={busy}
+        className="inline-flex w-full items-center justify-center gap-2 bg-cta px-4 py-2.5 text-sm font-medium tracking-wide text-white transition-colors hover:bg-cta-strong disabled:opacity-60"
       >
-        {pending ? "Signing in…" : "Sign in"}
+        {busy ? <Spinner /> : null}
+        {busy ? "Signing in…" : "Sign in"}
       </button>
     </form>
   );

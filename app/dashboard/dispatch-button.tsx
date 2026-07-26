@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Spinner } from "@/components/spinner";
 
 /**
  * Manual tick of the dispatcher, so the schedule can be exercised without
@@ -40,8 +41,9 @@ export function DispatchButton() {
         type="button"
         onClick={run}
         disabled={pending}
-        className="border border-cream/30 px-4 py-2 text-sm text-cream transition-colors hover:border-cream hover:bg-teal-line/40 disabled:opacity-50"
+        className="inline-flex items-center gap-2 border border-cream/30 px-4 py-2 text-sm text-cream transition-colors hover:border-cream hover:bg-teal-line/40 disabled:opacity-60"
       >
+        {pending ? <Spinner /> : null}
         {pending ? "Running…" : "Run dispatcher"}
       </button>
     </div>
