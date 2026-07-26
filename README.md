@@ -71,6 +71,100 @@ If you later want finer or higher-volume checking:
 
 The core check is one small pipeline — **fetch → extract → hash → compare → (if changed) diff → summarise → log** — implemented as pure, testable functions in `lib/` and invoked identically from the UI ("Check now"), the API worker, and the scheduled dispatcher.
 
+## Architecture
+
+```mermaid
+flowchart TB
+    CRON["Vercel Cron<br/>(daily tick)"] -->|"POST /api/cron/dispatch<br/>Bearer CRON_SECRET"| DISP["Dispatcher<br/>selects due targets"]
+    USER["User (browser)"] --> UI["Dashboard + API<br/>(Next.js on Vercel)"]
+    UI -->|"'Check now' / add URL"| PIPE
+    DISP -->|"one call per due target"| PIPE["runCheck() pipeline<br/>fetch → extract → hash → compare"]
+    PIPE -->|"fetch HTML"| WEB["Target website"]
+    PIPE -->|"only when hash changed"| LLM["LLM<br/>DeepSeek / Claude"]
+    PIPE -->|"write log + update state"| DB[("Postgres / Neon")]
+    UI -->|"read history"| DB
+```
+
+## The hash gate (change detection)
+
+This is the heart of the cost model. Every check reduces the page to its
+**visible text**, fingerprints it, and only pays for the LLM when that
+fingerprint moves.
+
+```mermaid
+flowchart TD
+    A["Fetch HTML"] --> B["Extract visible text<br/>strip scripts/styles/SVG,<br/>collapse whitespace, segment blocks"]
+    B --> C["hash = SHA-256(text)"]
+    C --> D{"Seen this target<br/>before?"}
+    D -->|"No — first crawl"| E["Store baseline snapshot<br/>status = no_change<br/>❌ no LLM"]
+    D -->|"Yes"| F{"hash == last_scraped_hash?"}
+    F -->|"Equal — nothing changed"| G["status = no_change<br/>❌ no LLM · 0 tokens"]
+    F -->|"Different — content moved"| H["Build line diff<br/>old text vs new text"]
+    H --> I["Summarise the diff with LLM<br/>💲 the only paid step"]
+    I --> J["status = change_detected<br/>save AI summary"]
+    E --> K["Write crawl_log row<br/>update target:<br/>last_scraped_hash, last_scraped_text,<br/>last_checked_at, next_run_at"]
+    G --> K
+    J --> K
+```
+
+Because the fingerprint is taken over *normalized visible text* (not raw HTML),
+invisible churn — rotating script nonces, whitespace, re-minified assets —
+doesn't move the hash, so it doesn't trigger a paid summary.
+
+## Data model
+
+```mermaid
+erDiagram
+    users ||--o{ target_urls : owns
+    target_urls ||--o{ crawl_logs : has
+
+    users {
+        uuid id PK
+        text email UK
+        text password_hash
+        text name
+        timestamptz created_at
+    }
+    target_urls {
+        uuid id PK
+        uuid user_id FK
+        text url
+        text label
+        text cron_schedule
+        text selector
+        boolean active
+        text last_scraped_hash "fingerprint for the gate"
+        text last_scraped_text "kept for diffing"
+        timestamptz last_checked_at
+        timestamptz next_run_at "when it's next due"
+        text last_status
+        timestamptz created_at
+    }
+    crawl_logs {
+        uuid id PK
+        uuid target_url_id FK
+        text status "no_change | change_detected | error"
+        int http_status
+        text content_hash
+        text previous_hash
+        int added_lines
+        int removed_lines
+        text diff_snippet
+        text llm_summary
+        text llm_model
+        text error_message
+        int duration_ms
+        timestamptz created_at
+    }
+```
+
+- **`target_urls`** holds current state per URL: the schedule (`cron_schedule` +
+  `next_run_at`), and the two fields the gate needs — `last_scraped_hash` (the
+  fingerprint it compares against) and `last_scraped_text` (used only to build
+  the diff when the hash moves).
+- **`crawl_logs`** is the append-only history: one row per check, carrying the
+  outcome, the diff stats, and the AI summary. Indexed by `target_url_id`.
+
 ## Why this architecture
 
 - **One full-stack Next.js app, not a split frontend/backend.** The dataset is small and the work is I/O-bound, so a single App-Router deploy (UI + route handlers together) keeps everything in one repo, one deploy, one language. Less operational surface for a tool this size.
