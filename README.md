@@ -39,23 +39,28 @@ The summariser picks a provider by which key is present, in order:
    - one of `DEEPSEEK_API_KEY` / `ANTHROPIC_API_KEY` (optional)
 3. **Deploy.** `vercel.json` registers an hourly cron on `/api/cron/dispatch`.
 
-### Scheduling caveat
+### Scheduling on the free tier
 
 The per-URL frequencies (15 min / hourly / daily / weekly) are only as fine as
-how often the dispatcher actually runs:
+how often the dispatcher actually runs. **Vercel Hobby cron fires only ~once a
+day**, so a "15-minute" URL would effectively be checked daily. Pick a free
+external scheduler that calls `POST /api/cron/dispatch` more often:
 
-- **Vercel Hobby** caps cron at roughly once per day — so a "15-minute" URL is
-  effectively checked daily.
-- For real sub-hour frequency on the free tier, trigger the dispatcher from an
-  external scheduler (e.g. cron-job.org or a GitHub Actions scheduled workflow)
-  every 15 minutes:
+- **GitHub Actions (recommended, already wired up).** `.github/workflows/dispatch.yml`
+  runs every 15 minutes. In the repo's **Settings → Secrets and variables → Actions**:
+  - Variable `DISPATCH_URL` = `https://<your-app>.vercel.app/api/cron/dispatch`
+  - Secret `CRON_SECRET` = the same value set in Vercel
 
-  ```
-  POST https://<your-app>/api/cron/dispatch
-  Authorization: Bearer <CRON_SECRET>
-  ```
+  Runs are best-effort and can be delayed a few minutes — fine for
+  page-watching. Trigger it manually from the Actions tab to test.
 
-- On Vercel Pro, set the `vercel.json` schedule to `*/15 * * * *`.
+- **cron-job.org** — more punctual (down to 1 min). Point it at the same URL
+  with header `Authorization: Bearer <CRON_SECRET>`.
+
+- **Vercel Pro** — just set the `vercel.json` schedule to `*/15 * * * *`.
+
+Any external scheduler makes `vercel.json` optional; keep it only if you want a
+daily backup tick.
 
 The dispatcher processes up to 8 due targets per tick (see `MAX_PER_TICK`) to
 stay within the function time limit.
