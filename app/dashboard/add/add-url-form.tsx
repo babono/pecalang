@@ -10,12 +10,20 @@ type Frequency = {
   hint: string;
 };
 
+// Faster-than-daily options can't be honoured while the scheduler runs once a
+// day (Vercel Hobby cron), so they're shown but locked. Unlock them by moving
+// to a more frequent scheduler (Vercel Pro / external cron) — see the README.
+const SUB_DAILY = new Set(["every_15_minutes", "hourly"]);
+
 export function AddUrlForm({ frequencies }: { frequencies: Frequency[] }) {
   const router = useRouter();
   const [url, setUrl] = useState("");
   const [label, setLabel] = useState("");
   const [selector, setSelector] = useState("");
-  const [frequency, setFrequency] = useState(frequencies[1]?.value ?? frequencies[0].value);
+  const [frequency, setFrequency] = useState(
+    () =>
+      (frequencies.find((f) => !SUB_DAILY.has(f.value)) ?? frequencies[0]).value,
+  );
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -86,12 +94,18 @@ export function AddUrlForm({ frequencies }: { frequencies: Frequency[] }) {
         <legend className="eyebrow">Check how often</legend>
         <div className="mt-3 grid gap-px border border-rule bg-rule sm:grid-cols-2">
           {frequencies.map((option) => {
-            const active = option.value === frequency;
+            const locked = SUB_DAILY.has(option.value);
+            const active = !locked && option.value === frequency;
             return (
               <label
                 key={option.value}
-                className={`cursor-pointer px-4 py-4 transition-colors ${
-                  active ? "bg-stable-soft" : "bg-paper-raised hover:bg-paper"
+                aria-disabled={locked}
+                className={`px-4 py-4 transition-colors ${
+                  locked
+                    ? "cursor-not-allowed bg-paper-raised opacity-55"
+                    : active
+                      ? "cursor-pointer bg-stable-soft"
+                      : "cursor-pointer bg-paper-raised hover:bg-paper"
                 }`}
               >
                 <input
@@ -99,19 +113,29 @@ export function AddUrlForm({ frequencies }: { frequencies: Frequency[] }) {
                   name="frequency"
                   value={option.value}
                   checked={active}
-                  onChange={() => setFrequency(option.value)}
+                  disabled={locked}
+                  onChange={() => !locked && setFrequency(option.value)}
                   className="sr-only"
                 />
                 <span className="flex items-baseline justify-between gap-2">
-                  <span className="text-base font-medium text-ink">
-                    {option.label}
+                  <span className="flex items-baseline gap-2">
+                    <span className="text-base font-medium text-ink">
+                      {option.label}
+                    </span>
+                    {locked ? (
+                      <span className="eyebrow text-[9px] text-accent">
+                        Locked
+                      </span>
+                    ) : null}
                   </span>
                   <span className="font-[family-name:var(--font-mono)] text-[11px] text-ink-faint">
                     {option.cron}
                   </span>
                 </span>
                 <span className="mt-1 block text-xs leading-relaxed text-ink-muted">
-                  {option.hint}
+                  {locked
+                    ? "Needs a more frequent scheduler than the current daily cron."
+                    : option.hint}
                 </span>
               </label>
             );
@@ -123,7 +147,8 @@ export function AddUrlForm({ frequencies }: { frequencies: Frequency[] }) {
             <code className="font-[family-name:var(--font-mono)] text-ink-muted">
               {selected.cron}
             </code>
-            . The dispatcher compares this against the current time on every tick.
+            . Checks run once a day, so sub-daily options are locked — see the
+            README to enable faster scheduling.
           </p>
         ) : null}
       </fieldset>
