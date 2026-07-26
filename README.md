@@ -202,25 +202,6 @@ The current build is tuned for a free-tier demo (a daily cron that runs checks i
 ## What I'd improve with another week
 
 - **Notifications** — email / Slack / webhook on a detected change. Right now it's a change *log*; alerting is the missing half of "reports meaningful changes."
-- **Queue-based worker fan-out** for real horizontal scale (above).
 - **Conditional requests** (ETag / Last-Modified) and content-type awareness (JSON/feeds diffed structurally, not as text).
 - **Real auth / multi-tenancy** (today it's a single seeded demo account) and login rate-limiting.
-- **Drizzle migrations + log retention** instead of runtime `CREATE TABLE IF NOT EXISTS`.
-- **Smarter diffing** — section/semantic-level rather than line-level, with per-target noise filters (ignore timestamps, counters, CSRF tokens) so dynamic pages don't cause false positives.
 - **Tests** — the `lib/` pipeline is pure and would be quick to cover well.
-
-## Final: approaching a 100k-line codebase I've never seen
-
-I don't start by reading files top-to-bottom — I build a map, then follow real behaviour through it.
-
-1. **Run it first.** Get it building and running locally (or watch it run). Nothing orients you faster than seeing the actual inputs and outputs, and the setup steps reveal the real dependencies (DB, queues, external services).
-2. **Find the edges.** Locate entry points and boundaries: `main`/route definitions, the API surface, the data model/schema, config and env, and the CI/deploy pipeline. The schema and the list of endpoints tell you what the system is *about* faster than any single module.
-3. **Follow one real request end-to-end.** Pick a single important flow and trace it through every layer — HTTP → handler → service → data → response. One vertical slice teaches the conventions (how they layer, name, handle errors, test) that the other 99% reuse.
-4. **Read the tests.** Tests are executable documentation of intended behaviour and edge cases, and they point at the parts the authors considered load-bearing.
-5. **Mine the history.** `git log`/blame on the core files, plus the PR/issue trail, explains *why* things are the way they are — the decisions and dead-ends you'd otherwise repeat.
-6. **Use tooling, not willpower.** Grep/ripgrep and an LSP (go-to-definition, find-references, call hierarchy) to move by relationships; generate a dependency/module graph to see the shape.
-7. **Write down the map as I go** — a short architecture note and a diagram of the main flows. If I can explain it back simply, I understand it; the note also becomes onboarding for the next person.
-8. **Talk to people.** A 15-minute "walk me through the parts you'd be nervous to change" with whoever knows the code saves days, and surfaces the landmines and tribal knowledge no file states.
-9. **Validate with a tiny, safe change.** A small, well-tested fix or a log line proves my mental model against reality before I touch anything that matters.
-
-Only then do I start writing real code — with a map, a traced-through example, and a validated understanding of the conventions I'm expected to follow.
