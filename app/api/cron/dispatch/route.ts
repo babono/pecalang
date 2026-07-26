@@ -3,6 +3,7 @@ import { and, eq, isNull, lte, or } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { targetUrls } from "@/lib/db/schema";
 import { authorizeCronRequest } from "@/lib/cron-auth";
+import { currentUser } from "@/lib/auth";
 import { runCheckById } from "@/lib/monitor";
 
 // Each check fetches a page and may call an LLM, so give the invocation room.
@@ -20,7 +21,12 @@ const MAX_PER_TICK = 8;
  * this URL) at this endpoint. Checks run sequentially for predictable timing.
  */
 async function dispatch(request: Request) {
-  if (!authorizeCronRequest(request)) {
+  // Authorized either by the cron secret (scheduler) or a signed-in session
+  // (the dashboard "Run dispatcher" button) — the latter matters in production,
+  // where the button can't send CRON_SECRET.
+  const authorized =
+    authorizeCronRequest(request) || (await currentUser()) !== null;
+  if (!authorized) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
