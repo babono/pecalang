@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { DEMO_EMAIL, DEMO_PASSWORD } from "@/lib/db";
+import { Logo } from "@/components/logo";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = { title: "Sign in — Pecalang" };
@@ -10,8 +11,9 @@ export default function LoginPage() {
     <main className="flex flex-1 items-center justify-center px-6 py-16">
       <div className="w-full max-w-sm">
         <div className="mb-10 text-center">
-          <p className="eyebrow text-cream-muted">Est. 2026</p>
-          <h1 className="mt-3 text-4xl tracking-tight text-cream">Pecalang</h1>
+          <Logo className="mx-auto h-14 w-14 text-cream" />
+          <p className="eyebrow mt-5 text-cream-muted">Est. 2026</p>
+          <h1 className="mt-2 text-4xl tracking-tight text-cream">Pecalang</h1>
           <p className="mx-auto mt-3 max-w-xs text-sm leading-relaxed text-cream-muted">
             A watchman for your pages. Give it a URL and a schedule; it tells you
             what changed, in words.

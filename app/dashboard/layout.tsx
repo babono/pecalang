@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
+import { Logo } from "@/components/logo";
 
 export default async function DashboardLayout({
   children,
@@ -16,9 +17,12 @@ export default async function DashboardLayout({
         <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-x-8 gap-y-3 px-6 py-5">
           <Link
             href="/dashboard"
-            className="text-xl font-semibold tracking-tight text-cream"
+            className="flex items-center gap-2 text-cream"
           >
-            Pecalang
+            <Logo className="h-6 w-6" />
+            <span className="text-xl font-semibold tracking-tight">
+              Pecalang
+            </span>
           </Link>
 
           <nav className="flex items-center gap-6">
